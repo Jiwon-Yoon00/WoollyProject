@@ -1,8 +1,8 @@
 ---
 name: "\U0001F4CC Feature Request"
 about: 요청하는 기능의 간단한 제목
-title: ''
-labels: ''
+title: "[✨ Feature]"
+labels: enhancement
 assignees: ''
 
 ---
