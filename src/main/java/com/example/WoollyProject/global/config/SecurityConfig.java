@@ -28,7 +28,7 @@ public class SecurityConfig {
 		http
 			.csrf(csrf -> csrf.disable())  // CSRF 비활성화 예시
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/", "/login", "/signup").permitAll()  // 누구나 접근 가능
+				.requestMatchers("/", "/api/v1/users/login", "/api/v1/users/signup").permitAll()  // 누구나 접근 가능
 				.requestMatchers("/admin/**").hasRole("ADMIN")          // ADMIN 권한 필요
 				.anyRequest().authenticated()                           // 나머지 요청은 인증 필요
 			)
