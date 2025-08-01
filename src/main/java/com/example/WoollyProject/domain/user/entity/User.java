@@ -6,6 +6,8 @@ import com.example.WoollyProject.global.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,6 +34,8 @@ public class User extends BaseTimeEntity {
 
 	private String password;
 
+	@Enumerated(EnumType.STRING)
 	@ColumnDefault("'USER'")
+	@Column(nullable = false, length = 10)
 	private Role role;
 }
