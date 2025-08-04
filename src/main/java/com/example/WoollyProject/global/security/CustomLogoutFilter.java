@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
+import com.example.WoollyProject.global.dto.ApiRes;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class CustomLogoutFilter extends GenericFilterBean {
 	private final JwtProvider jwtProvider;
 	private final RefreshRepository refreshRepository;
+	private final ObjectMapper objectMapper;
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws
@@ -102,7 +105,12 @@ public class CustomLogoutFilter extends GenericFilterBean {
 		cookie.setPath("/");
 
 		response.addCookie(cookie);
+
+		response.setContentType("application/json;charset=UTF-8");
 		response.setStatus(HttpServletResponse.SC_OK);//path and method verify
+
+		ApiRes<String> apiRes = ApiRes.ok();
+		objectMapper.writeValue(response.getWriter(), apiRes);
 
 	}
 }
