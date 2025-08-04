@@ -1,6 +1,7 @@
 package com.example.WoollyProject.global.security;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -10,7 +11,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.WoollyProject.domain.user.entity.User;
+import com.example.WoollyProject.global.dto.ApiRes;
+import com.example.WoollyProject.global.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,12 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private JwtProvider jwtProvider;
 	private CustomUserDetailService customUserDetailService;
+	private ObjectMapper objectMapper;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 
-		String header = request.getHeader("Authorization");
+		String header = request.getHeader("access");
 
 		//Authorization 헤더 검증
 		if(header == null || !header.startsWith("Bearer ")){
@@ -53,10 +59,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		String token = header.replace("Bearer ", "");
 
-		// 토큰 소멸 시간 검증
-		if(jwtProvider.isExpired(token)){
-			log.error("Token is expired");
-			filterChain.doFilter(request, response);
+		// 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
+		try {
+			jwtProvider.isExpired(token);
+		} catch (ExpiredJwtException e) {
+			sendErrorResponse(response, ErrorCode.ACCESS_TOKEN_EXPIRED);
+			return;
+		}
+
+		// 토큰이 accessToken인지
+		if(!jwtProvider.isAccessToken(token)){
+			sendErrorResponse(response, ErrorCode.INVALID_ACCESS_TOKEN);
 			return;
 		}
 
@@ -74,4 +87,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		filterChain.doFilter(request, response);
 	}
+
+	private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+		response.setStatus(errorCode.getHttpStatus().value());
+		response.setContentType("application/json; charset=UTF-8");
+
+		ApiRes<?> errorResponse = ApiRes.fail(errorCode);
+
+		String json = objectMapper.writeValueAsString(errorResponse);
+
+		PrintWriter writer = response.getWriter();
+		writer.print(json);
+		writer.flush();
+	}
+
 }

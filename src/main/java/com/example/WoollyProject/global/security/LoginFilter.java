@@ -78,14 +78,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 		String accessToken = jwtProvider.generateAccessToken(email, role);
 		String refreshToken = jwtProvider.generateRefreshToken(email);
 
-		// 응답 바디 구성
-		Map<String, String> tokenMap = new HashMap<>();
-		tokenMap.put("accessToken", accessToken);
-		tokenMap.put("refreshToken", refreshToken);
-
 		// accessToken
-		response.addHeader("Authorization", "Bearer " + accessToken);
-
+		response.setHeader("Authorization", "Bearer " + accessToken);
 
 		// refreshToken
 		Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);

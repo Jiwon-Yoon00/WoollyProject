@@ -52,6 +52,7 @@ public class JwtProvider {
 			.subject(email)
 			.claim("email", email)
 			.claim("role", role.name())
+			.claim("type", "access")
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis() + accessExpiration))
 			.signWith(secretKey)
@@ -60,8 +61,9 @@ public class JwtProvider {
 
 	public String generateRefreshToken(String email) {
 		return Jwts.builder()
-			.subject(email + "_refresh")
+			.subject(email)
 			.claim("email", email)
+			.claim("type", "refresh")
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + refreshExpiration))
 			.signWith(secretKey)
@@ -87,6 +89,18 @@ public class JwtProvider {
 			.getPayload()
 			.getExpiration().before(new Date());
 	}
+
+	public Boolean isAccessToken(String token) {
+		try {
+			String type = jwtParser.parseSignedClaims(token)
+				.getPayload()
+				.get("type", String.class);
+			return "access".equals(type);
+		} catch (Exception e) {
+			return false; // type 클레임 없음 or 파싱 오류
+		}
+	}
+
 
 	public Claims getClaims(String token) {
 		return jwtParser.parseSignedClaims(token).getPayload();
