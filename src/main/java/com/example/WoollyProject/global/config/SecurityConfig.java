@@ -17,11 +17,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
+import com.example.WoollyProject.global.security.CustomLogoutFilter;
 import com.example.WoollyProject.global.security.CustomUserDetailService;
 import com.example.WoollyProject.global.security.JwtAuthenticationFilter;
 import com.example.WoollyProject.global.security.JwtProvider;
@@ -39,7 +41,7 @@ public class SecurityConfig {
 	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JwtProvider jwtProvider;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final CustomUserDetailService customUserDetailService;
+	private final CustomLogoutFilter customLogoutFilter;
 	private final ObjectMapper objectMapper;
 	private final RefreshRepository refreshRepository;
 	@Bean
@@ -84,6 +86,7 @@ public class SecurityConfig {
 				.anyRequest().authenticated()                           // 나머지 요청은 인증 필요
 			)
 
+			.addFilterBefore(customLogoutFilter, LogoutFilter.class)
 			.addFilterBefore(jwtAuthenticationFilter, LoginFilter.class)
 			.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
 
