@@ -35,29 +35,29 @@ import lombok.extern.slf4j.Slf4j;
 //HTTP헤더에서 토큰 추출
 // jwtProvider로 토큰 유효성 검증
 @Component
-@RequiredArgsConstructor
 @AllArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private JwtProvider jwtProvider;
-	private CustomUserDetailService customUserDetailService;
-	private ObjectMapper objectMapper;
+	private final JwtProvider jwtProvider;
+	private final CustomUserDetailService customUserDetailService;
+	private final ObjectMapper objectMapper;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 
-		String header = request.getHeader("access");
+		String header = request.getHeader("Authorization");
 
 		//Authorization 헤더 검증
 		if(header == null || !header.startsWith("Bearer ")){
-			log.error("Authorization header not found");
+			log.debug("Authorization header missing or invalid: {}", header);
 			filterChain.doFilter(request, response);
 			return;
 		}
 
 		String token = header.replace("Bearer ", "");
+		log.info("🔐 Access token received: {}", token); // 이걸 꼭 찍어보세요
 
 		// 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
 		try {

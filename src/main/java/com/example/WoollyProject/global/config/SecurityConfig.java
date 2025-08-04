@@ -37,6 +37,7 @@ public class SecurityConfig {
 
 	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JwtProvider jwtProvider;
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomUserDetailService customUserDetailService;
 	private final ObjectMapper objectMapper;
 
@@ -82,7 +83,7 @@ public class SecurityConfig {
 				.anyRequest().authenticated()                           // 나머지 요청은 인증 필요
 			)
 
-			.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, customUserDetailService, objectMapper ), LoginFilter.class)
+			.addFilterBefore(jwtAuthenticationFilter, LoginFilter.class)
 			.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
 
 			.sessionManagement(session -> session

@@ -19,7 +19,8 @@ public enum ErrorCode {
 	ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "계정이 잠겨 있습니다."),
 	ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "계정이 비활성화되어 있습니다."),
 	ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Access token expired"),
-	INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid token: not an access token"),
+	REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Refresh token expired"),
+	INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid token"),
 	AUTH_HEADER_MISSING(HttpStatus.UNAUTHORIZED, "Authorization header is missing or invalid"),
 
 

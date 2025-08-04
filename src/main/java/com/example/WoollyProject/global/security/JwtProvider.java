@@ -52,18 +52,19 @@ public class JwtProvider {
 			.subject(email)
 			.claim("email", email)
 			.claim("role", role.name())
-			.claim("type", "access")
+			.claim("type", "accessToken")
 			.issuedAt(new Date(System.currentTimeMillis()))
 			.expiration(new Date(System.currentTimeMillis() + accessExpiration))
 			.signWith(secretKey)
 			.compact();
 	}
 
-	public String generateRefreshToken(String email) {
+	public String generateRefreshToken(String email, Role role) {
 		return Jwts.builder()
 			.subject(email)
 			.claim("email", email)
-			.claim("type", "refresh")
+			.claim("type", "refreshToken")
+			.claim("role", role.name())
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + refreshExpiration))
 			.signWith(secretKey)
@@ -78,10 +79,11 @@ public class JwtProvider {
 			.get("email", String.class);
 	}
 
-	public String getRole(String token) {
-		return jwtParser.parseSignedClaims(token)
+	public Role getRole(String token) {
+		String roleStr = jwtParser.parseSignedClaims(token)
 			.getPayload()
-			.get("role", String.class);
+			.get("role", String.class); // 문자열로 먼저 꺼낸다
+		return Role.valueOf(roleStr); // enum으로 변환
 	}
 
 	public Boolean isExpired(String token) {
@@ -95,7 +97,18 @@ public class JwtProvider {
 			String type = jwtParser.parseSignedClaims(token)
 				.getPayload()
 				.get("type", String.class);
-			return "access".equals(type);
+			return "accessToken".equals(type);
+		} catch (Exception e) {
+			return false; // type 클레임 없음 or 파싱 오류
+		}
+	}
+
+	public Boolean isRefreshToken(String token) {
+		try {
+			String type = jwtParser.parseSignedClaims(token)
+				.getPayload()
+				.get("type", String.class);
+			return "refreshToken".equals(type);
 		} catch (Exception e) {
 			return false; // type 클레임 없음 or 파싱 오류
 		}
