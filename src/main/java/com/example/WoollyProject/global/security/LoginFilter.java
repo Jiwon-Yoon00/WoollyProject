@@ -2,7 +2,6 @@ package com.example.WoollyProject.global.security;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,13 +12,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.WoollyProject.domain.auth.entity.RefreshEntity;
-import com.example.WoollyProject.domain.auth.entity.RefreshTokenRedis;
-import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
-import com.example.WoollyProject.domain.auth.repository.RefreshTokenRepository;
+import com.example.WoollyProject.domain.auth.service.AuthService;
 import com.example.WoollyProject.domain.user.entity.Role;
 import com.example.WoollyProject.global.auth.dto.request.LoginReqDto;
 import com.example.WoollyProject.global.dto.ApiRes;
@@ -41,7 +36,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 	private final JwtProvider jwtProvider;
 	private final ObjectMapper objectMapper; // json과 객체간의 변환을 담당, LocalDateTime 직렬화 문제
 	//private final RefreshRepository refreshRepository;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final AuthService authService;
 
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -81,7 +76,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
 		String accessToken = jwtProvider.generateAccessToken(email, role);
 		String refreshToken = jwtProvider.generateRefreshToken(email, role);
-		addRefreshEntity(email, refreshToken, 86400000L);
+		authService.addRefreshEntity(email, refreshToken, 86400000L);
 
 
 		// accessToken
@@ -136,22 +131,22 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
 	}
 
-	private void addRefreshEntity(String email, String refresh, Long expiredMs) {
-
-		// Date date = new Date(System.currentTimeMillis() + expiredMs);
-		//
-		// RefreshEntity refreshEntity = new RefreshEntity();
-		// refreshEntity.setEmail(email);
-		// refreshEntity.setRefresh(refresh);
-		// refreshEntity.setExpiration(date.toString());
-
-		RefreshTokenRedis token = RefreshTokenRedis.builder()
-			.email(email)
-			.refresh(refresh)
-			.expiration(expiredMs)
-			.build();
-
-		//refreshTokenRepository.save(token);
-		refreshTokenRepository.save(token);
-	}
+	// private void addRefreshEntity(String email, String refresh, Long expiredMs) {
+	//
+	// 	// Date date = new Date(System.currentTimeMillis() + expiredMs);
+	// 	//
+	// 	// RefreshEntity refreshEntity = new RefreshEntity();
+	// 	// refreshEntity.setEmail(email);
+	// 	// refreshEntity.setRefresh(refresh);
+	// 	// refreshEntity.setExpiration(date.toString());
+	//
+	// 	RefreshTokenRedis token = RefreshTokenRedis.builder()
+	// 		.email(email)
+	// 		.refresh(refresh)
+	// 		.expiration(expiredMs)
+	// 		.build();
+	//
+	// 	//refreshTokenRepository.save(token);
+	// 	refreshTokenRepository.save(token);
+	// }
 }

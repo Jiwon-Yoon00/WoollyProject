@@ -1,21 +1,15 @@
 package com.example.WoollyProject.domain.auth.service;
-
-import java.util.Date;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.WoollyProject.domain.auth.dto.response.TokenResDto;
-import com.example.WoollyProject.domain.auth.entity.RefreshEntity;
-import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
+import com.example.WoollyProject.domain.auth.entity.RefreshTokenRedis;
+import com.example.WoollyProject.domain.auth.repository.RefreshTokenRepository;
 import com.example.WoollyProject.domain.user.entity.Role;
-import com.example.WoollyProject.global.dto.ApiRes;
 import com.example.WoollyProject.global.exception.CustomException;
 import com.example.WoollyProject.global.exception.ErrorCode;
 import com.example.WoollyProject.global.security.JwtProvider;
 
-import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,49 +19,54 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
 
 	private final JwtProvider jwtProvider;
-	private final RefreshRepository refreshRepository;
+	private final RefreshTokenRepository refreshTokenRepository;
 
-	public TokenResDto refreshToken(String refreshToken) {
+	@Transactional
+	public TokenResDto refreshToken(String oldRefreshToken) {
 
 		// 토큰 검증 - 만료되었는지
-		if (jwtProvider.isExpired(refreshToken)) {
+		if (jwtProvider.isExpired(oldRefreshToken)) {
 			throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
 		}
 
 		// 토큰이 refresh인지 확인
-		if(!jwtProvider.isRefreshToken(refreshToken)){
+		if(!jwtProvider.isRefreshToken(oldRefreshToken)){
 			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
 		}
 
-		Boolean isExist = refreshRepository.existsByRefresh(refreshToken);
-		if (!isExist) {
-			//response body
-			throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+		// 사용자 정보 추출
+		String email = jwtProvider.getUsername(oldRefreshToken);
+		Role role = jwtProvider.getRole(oldRefreshToken);
+
+		// Redis에서 기존 토큰 조회
+		RefreshTokenRedis existingToken = refreshTokenRepository.findById(email)
+			.orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+
+		// 토큰 일치 여부 확인
+		if (!existingToken.getRefresh().equals(oldRefreshToken)) {
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
 		}
 
-		// 사용자 정보 추출
-		String email = jwtProvider.getUsername(refreshToken);
-		Role role = jwtProvider.getRole(refreshToken);
+		// 토큰 rotation: 기존 토큰 삭제
+		refreshTokenRepository.deleteById(email);
 
 		// accessToken 재발급
 		String newAccessToken = jwtProvider.generateAccessToken(email, role);
 		String newRefreshToken = jwtProvider.generateRefreshToken(email, role);
 
-		refreshRepository.deleteByRefresh(refreshToken);
+		// 새 refreshToken 저장
 		addRefreshEntity(email, newRefreshToken, 86400000L);
 
 		return new TokenResDto(newAccessToken, newRefreshToken);
 	}
 
-	private void addRefreshEntity(String email, String refresh, Long expiredMs) {
+	public void addRefreshEntity(String email, String refresh, Long expiredMs) {
+		RefreshTokenRedis token = RefreshTokenRedis.builder()
+			.email(email)
+			.refresh(refresh)
+			.expiration(System.currentTimeMillis() + expiredMs)
+			.build();
 
-		Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-		RefreshEntity refreshEntity = new RefreshEntity();
-		refreshEntity.setEmail(email);
-		refreshEntity.setRefresh(refresh);
-		refreshEntity.setExpiration(date.toString());
-
-		refreshRepository.save(refreshEntity);
+		refreshTokenRepository.save(token);
 	}
 }

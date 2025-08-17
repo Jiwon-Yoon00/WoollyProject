@@ -24,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
 import com.example.WoollyProject.domain.auth.repository.RefreshTokenRepository;
+import com.example.WoollyProject.domain.auth.service.AuthService;
 import com.example.WoollyProject.global.security.CustomLogoutFilter;
 import com.example.WoollyProject.global.security.CustomUserDetailService;
 import com.example.WoollyProject.global.security.JwtAuthenticationFilter;
@@ -44,8 +45,8 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomLogoutFilter customLogoutFilter;
 	private final ObjectMapper objectMapper;
-	//private final RefreshRepository refreshRepository;
-	private final RefreshTokenRepository refreshTokenRepository;
+	private final AuthService authService;
+
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
@@ -59,7 +60,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-		LoginFilter loginFilter = new LoginFilter(authenticationManager(authenticationConfiguration),  jwtProvider, objectMapper, refreshTokenRepository);
+		LoginFilter loginFilter = new LoginFilter(authenticationManager(authenticationConfiguration),  jwtProvider, objectMapper, authService);
 		loginFilter.setFilterProcessesUrl("/api/v1/users/login");
 
 		http
