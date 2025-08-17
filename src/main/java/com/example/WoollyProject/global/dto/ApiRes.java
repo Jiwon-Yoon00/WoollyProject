@@ -24,6 +24,10 @@ public class ApiRes<T> {
 		return new ApiRes<>(200, true, "요청이 성공했습니다.", data, LocalDateTime.now());
 	}
 
+	public static<T> ApiRes<T> ok() {
+		return new ApiRes<>(200, true, "요청이 성공했습니다.", null, LocalDateTime.now());
+	}
+
 	// 실패 응답
 	public static <T> ApiRes<T> fail(ErrorCode errorCode) {
 		return new ApiRes<>(
