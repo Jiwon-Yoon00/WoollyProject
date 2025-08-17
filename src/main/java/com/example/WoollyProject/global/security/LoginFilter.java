@@ -17,7 +17,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.example.WoollyProject.domain.auth.entity.RefreshEntity;
+import com.example.WoollyProject.domain.auth.entity.RefreshTokenRedis;
 import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
+import com.example.WoollyProject.domain.auth.repository.RefreshTokenRepository;
 import com.example.WoollyProject.domain.user.entity.Role;
 import com.example.WoollyProject.global.auth.dto.request.LoginReqDto;
 import com.example.WoollyProject.global.dto.ApiRes;
@@ -38,7 +40,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 	private final AuthenticationManager authenticationManager;
 	private final JwtProvider jwtProvider;
 	private final ObjectMapper objectMapper; // json과 객체간의 변환을 담당, LocalDateTime 직렬화 문제
-	private final RefreshRepository refreshRepository;
+	//private final RefreshRepository refreshRepository;
+	private final RefreshTokenRepository refreshTokenRepository;
 
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -135,13 +138,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
 	private void addRefreshEntity(String email, String refresh, Long expiredMs) {
 
-		Date date = new Date(System.currentTimeMillis() + expiredMs);
+		// Date date = new Date(System.currentTimeMillis() + expiredMs);
+		//
+		// RefreshEntity refreshEntity = new RefreshEntity();
+		// refreshEntity.setEmail(email);
+		// refreshEntity.setRefresh(refresh);
+		// refreshEntity.setExpiration(date.toString());
 
-		RefreshEntity refreshEntity = new RefreshEntity();
-		refreshEntity.setEmail(email);
-		refreshEntity.setRefresh(refresh);
-		refreshEntity.setExpiration(date.toString());
+		RefreshTokenRedis token = RefreshTokenRedis.builder()
+			.email(email)
+			.refresh(refresh)
+			.expiration(expiredMs)
+			.build();
 
-		refreshRepository.save(refreshEntity);
+		//refreshTokenRepository.save(token);
+		refreshTokenRepository.save(token);
 	}
 }
