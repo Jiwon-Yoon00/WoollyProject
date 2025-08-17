@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Component
-@Order(0)
 public class CustomLogoutFilter extends GenericFilterBean {
 	private final JwtProvider jwtProvider;
 	//private final RefreshRepository refreshRepository;

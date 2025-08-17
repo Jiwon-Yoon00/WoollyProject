@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Order(1)
 public class JwtBlacklistFilter extends OncePerRequestFilter {
 
 	private final JwtProvider jwtProvider;
