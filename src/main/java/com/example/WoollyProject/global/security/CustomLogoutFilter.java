@@ -3,9 +3,11 @@ package com.example.WoollyProject.global.security;
 import java.io.IOException;
 import java.util.Date;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
+import com.example.WoollyProject.domain.auth.entity.BlacklistReason;
 import com.example.WoollyProject.domain.auth.repository.RefreshRepository;
 import com.example.WoollyProject.domain.auth.repository.RefreshTokenRepository;
 import com.example.WoollyProject.domain.auth.service.BlacklistService;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Component
+@Order(0)
 public class CustomLogoutFilter extends GenericFilterBean {
 	private final JwtProvider jwtProvider;
 	//private final RefreshRepository refreshRepository;
@@ -123,7 +126,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
 		if (accessToken != null && !accessToken.isEmpty()) {
 			//System.out.println("블랙리스트");
 			long remainingMillis = getRemainingMillis(accessToken);
-			blacklistService.addToBlacklist(accessToken, remainingMillis);
+			blacklistService.addToBlacklist(accessToken, BlacklistReason.LOGOUT ,remainingMillis);
 		}
 
 

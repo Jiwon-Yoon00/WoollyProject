@@ -28,6 +28,7 @@ import com.example.WoollyProject.domain.auth.service.AuthService;
 import com.example.WoollyProject.global.security.CustomLogoutFilter;
 import com.example.WoollyProject.global.security.CustomUserDetailService;
 import com.example.WoollyProject.global.security.JwtAuthenticationFilter;
+import com.example.WoollyProject.global.security.JwtBlacklistFilter;
 import com.example.WoollyProject.global.security.JwtProvider;
 import com.example.WoollyProject.global.security.LoginFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,7 @@ public class SecurityConfig {
 
 	private final AuthenticationConfiguration authenticationConfiguration;
 	private final JwtProvider jwtProvider;
+	private final JwtBlacklistFilter jwtBlacklistFilter;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomLogoutFilter customLogoutFilter;
 	private final ObjectMapper objectMapper;
@@ -91,6 +93,7 @@ public class SecurityConfig {
 
 			.addFilterBefore(customLogoutFilter, LogoutFilter.class)
 			.addFilterBefore(jwtAuthenticationFilter, LoginFilter.class)
+			.addFilterBefore(jwtBlacklistFilter, JwtAuthenticationFilter.class)
 			.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
 
 			.sessionManagement(session -> session
