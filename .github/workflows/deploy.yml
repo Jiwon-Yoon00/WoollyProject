@@ -37,6 +37,16 @@ jobs:
           username: ${{ secrets.EC2_SSH_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
-                cd /home/ubuntu/woolly
-                docker-compose pull
-                docker-compose up -d --build
+              set -e
+               echo "📦 Pull latest image"
+                sudo docker pull 0yuniverse0/woolly:latest
+            
+                echo "🧹 Stop old containers & prune images"
+                sudo docker stop woolly || true
+                sudo docker rm woolly || true
+                sudo docker image prune -f
+            
+                echo "🚀 Start container"
+                sudo docker run -d --name woolly -p 8080:8080 0yuniverse0/woolly:latest
+            
+                echo "✅ Deployment completed!"
