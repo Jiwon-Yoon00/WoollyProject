@@ -30,9 +30,9 @@ jobs:
       - name: Deploy on EC2 via Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_SSH_USER }}
-          key: ${{ env.PRIVATE_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_SSH_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
           script: |
             set -e
             cd /home/ec2-user
