@@ -31,23 +31,12 @@ jobs:
 
     steps:
       - name: Deploy on EC2 via Docker Compose
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_SSH_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
-            set -e
-            cd /home/ec2-user
-            
-            echo "📦 Pull latest image"
-            sudo docker compose pull
-            
-            echo "🧹 Stop old containers & prune images"
-            sudo docker compose down
-            sudo docker image prune -f
-            
-            echo "🚀 Start services"
-            sudo docker compose up -d
-            
-            echo "✅ Deployment completed!"
+                cd /home/ubuntu/woolly
+                docker-compose pull
+                docker-compose up -d --build
