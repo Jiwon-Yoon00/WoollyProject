@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-    deploy:
+  build-and-push:
         runs-on: ubuntu-latest
 
         steps:
@@ -21,3 +21,30 @@ jobs:
 
         - name: Push Docker image
           run: docker push 0yuniverse0/woolly:latest
+
+  deploy-to-ec2:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on EC2 via Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_SSH_USER }}
+          key: ${{ env.PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/ec2-user
+            
+            echo "📦 Pull latest image"
+            sudo docker compose pull
+            
+            echo "🧹 Stop old containers & prune images"
+            sudo docker compose down
+            sudo docker image prune -f
+            
+            echo "🚀 Start services"
+            sudo docker compose up -d
+            
+            echo "✅ Deployment completed!"
